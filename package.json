@@ -23,10 +23,7 @@
     "migration:create": "npm run typeorm migration:create src/database/migrations/$npm_config_filename",
     "migration:generate": "npm run typeorm migration:generate -- -d src/database/configs/orm.config src/database/migrations/$npm_config_filename",
     "migration:revert": "npm run typeorm migration:revert -- -d src/database/configs/orm.config",
-    "db:rollback": "npm run typeorm schema:drop -- -d src/database/configs/orm.config",
-    "prepare": "husky",
-    "commitlint": "commitlint --edit",
-    "proto:generate": "sh ./scripts/proto-gen.sh"
+    "db:rollback": "npm run typeorm schema:drop -- -d src/database/configs/orm.config"
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
