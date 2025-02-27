@@ -1,26 +1,35 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateEmailDto } from './dto/create-email.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Email } from './entities/email.entity';
 import { Repository } from 'typeorm';
 import { config as dotenvConfig } from 'dotenv';
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
 dotenvConfig({ path: '.env' });
 
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
-  private resend: Resend;
 
   constructor(
     @InjectRepository(Email) private emailRepository: Repository<Email>,
-  ) {
-    const resendApiKey = String(process.env.RESEND_API_KEY);
-    if (!resendApiKey) {
-      throw new Error('RESEND_API_KEY is not defined in environment variables');
+  ) {}
+
+  async onModuleInit() {
+    const sendgridApiKey = String(process.env.SENDGRID_API_KEY);
+    if (!sendgridApiKey) {
+      throw new Error(
+        'SENDGRID_API_KEY is not defined in environment variables',
+      );
     }
-    this.resend = new Resend(resendApiKey);
+    sgMail.setApiKey(sendgridApiKey);
+    this.logger.log('SendGrid initialized successfully');
   }
 
   async createEmail(createEmailDto: CreateEmailDto) {
@@ -49,31 +58,36 @@ export class EmailService {
     }
 
     try {
-      const { data, error } = await this.resend.emails.send({
-        from: process.env.EMAIL_FROM ?? 'easy-kindle@gmail.com',
+      const msg = {
+        from: process.env.EMAIL_FROM ?? 'easykindle@easy-kindle.com',
         to: this.convertMail(email.to),
         cc: email.cc ? this.convertMail(email.cc) : undefined,
         bcc: email.bcc ? this.convertMail(email.bcc) : undefined,
         subject: email.subject,
         html: email.html,
-      });
+      };
 
-      const { id } = data || {};
+      const response = await sgMail.send(msg);
 
-      if (error) {
-        email.error = error;
-        this.logger.error(`Failed to send email ${emailId}`, error);
-      } else {
+      if (
+        response &&
+        response[0] &&
+        response[0].statusCode >= 200 &&
+        response[0].statusCode < 300
+      ) {
         email.sent = true;
-        email.resendId = id as string;
+        email.id = response[0].headers['x-message-id'];
         this.logger.log(
-          `Email ${emailId} sent successfully with Resend ID: ${id}`,
+          `Email ${emailId} sent successfully with SendGrid ID: ${email.id}`,
         );
+      } else {
+        email.error = JSON.stringify(response);
+        this.logger.error(`Failed to send email ${emailId}`, response);
       }
 
       return this.emailRepository.save(email);
     } catch (error) {
-      email.error = error;
+      email.error = JSON.stringify(error);
       this.logger.error(`Exception when sending email ${emailId}`, error);
       return this.emailRepository.save(email);
     }
