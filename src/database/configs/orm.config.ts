@@ -14,10 +14,12 @@ export const dataSourceOptions: DataSourceOptions = {
   password: process.env.POSTGRESQL_ADDON_PASSWORD,
   database: process.env.POSTGRESQL_ADDON_DB,
   entities: [Book, Email],
+  poolSize: 5,
+  connectTimeoutMS: 0,
   // entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
   migrations: [join(__dirname, '..', 'migrations/*{.ts,.js}')],
-  migrationsRun: true,
-  synchronize: true,
+  migrationsRun: false,
+  synchronize: false,
 };
 
 export default new DataSource(dataSourceOptions);

@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('emails')
+@Entity('email')
 export class Email {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -30,7 +30,7 @@ export class Email {
   sent: boolean;
 
   @Column({ nullable: true })
-  resendId: string;
+  sendgridId: string;
 
   @Column({ nullable: true, type: 'json' })
   error: any;

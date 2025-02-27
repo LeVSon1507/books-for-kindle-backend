@@ -13,6 +13,8 @@ import sgMail from '@sendgrid/mail';
 
 dotenvConfig({ path: '.env' });
 
+const DEFAULT_TEMPLATE_ID = 'd-89465c8290c04ed98cfe06579b4a0ebc';
+
 @Injectable()
 export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
@@ -64,8 +66,14 @@ export class EmailService implements OnModuleInit {
         cc: email.cc ? this.convertMail(email.cc) : undefined,
         bcc: email.bcc ? this.convertMail(email.bcc) : undefined,
         subject: email.subject,
+        templateId: DEFAULT_TEMPLATE_ID,
+        // dynamicTemplateData: email.templateData || {},
         html: email.html,
       };
+
+      if (!email.id) {
+        msg.html = email.html;
+      }
 
       const response = await sgMail.send(msg);
 
@@ -76,9 +84,9 @@ export class EmailService implements OnModuleInit {
         response[0].statusCode < 300
       ) {
         email.sent = true;
-        email.id = response[0].headers['x-message-id'];
+        email.sendgridId = response[0].headers['x-message-id'];
         this.logger.log(
-          `Email ${emailId} sent successfully with SendGrid ID: ${email.id}`,
+          `Email ${emailId} sent successfully with SendGrid ID: ${email.sendgridId}`,
         );
       } else {
         email.error = JSON.stringify(response);
