@@ -38,7 +38,7 @@ export class Book {
   @Column({ type: 'text', name: 'long_description', nullable: true })
   longDescription?: string;
 
-  @Column({ type: 'bigint' })
+  @Column({ type: 'numeric' })
   price: number;
 
   @Column({ type: 'varchar', length: 255 })
