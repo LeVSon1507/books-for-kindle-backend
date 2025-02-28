@@ -32,6 +32,9 @@ export class Email {
   @Column({ nullable: true })
   sendgridId: string;
 
+  @Column({ nullable: true })
+  templateEmailId: string;
+
   @Column({ nullable: true, type: 'json' })
   error: any;
 

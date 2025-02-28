@@ -66,7 +66,9 @@ export class EmailService implements OnModuleInit {
         cc: email.cc ? this.convertMail(email.cc) : undefined,
         bcc: email.bcc ? this.convertMail(email.bcc) : undefined,
         subject: email.subject,
-        templateId: process.env.TEMPLATE_ID ?? DEFAULT_TEMPLATE_ID,
+        templateId:
+          (email.templateEmailId || process.env.TEMPLATE_ID) ??
+          DEFAULT_TEMPLATE_ID,
         // dynamicTemplateData: email.templateData || {},
         html: email.html,
       };
